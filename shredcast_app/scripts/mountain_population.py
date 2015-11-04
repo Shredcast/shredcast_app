@@ -28,6 +28,7 @@ except ImportError: # not running in Django, gotta whip up a nice sys.path
     sys.path.append("/Users/maxwellskala/projects/shredcast/shredcast_app")
     from mountains.models import Mountain
 
+
 states = [
     'AK', 'ID', 'OR', 'WA', 'AZ', 'CA', 'NV', 'CO', 'MT', 'NM', 'UT', 'WY',
     'IA', 'IL', 'IN', 'MI', 'MN', 'MO', 'ND', 'OH', 'SD', 'WI', 'CT', 'MA',
