@@ -16,13 +16,11 @@ Including another URLconf
 from django.conf.urls import include, url
 from django.contrib import admin
 
-from api import MountainResource
+from mountains import views as mountain_views
 
-mountain_resource = MountainResource()
 
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
-
-    # API urls
-    url(r'^api/', include(mountain_resource.urls)),
+    url(r'^location/', mountain_views.UserLocationView.as_view(), name="user_location"),
+    url(r'^results/', mountain_views.MountainResultsView.as_view(), name="mountain_results"),
 ]

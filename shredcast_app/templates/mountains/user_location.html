@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% block javascript %}
+<script src="{% static "js/mountains/user_location.js" %}"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key={{ api_key }}
+    &signed_in=true&libraries=places&callback=initAutocomplete" async defer>
+</script>
+{% endblock javascript %}
+
+{% block stylesheets %}
+{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static "css/mountains/user_location.css" %}">
+{% endblock stylesheets %}
+
+{% block content %}
+<form action="{% url "mountain_results" %}" method="GET">
+    <h2>Enter your location</h2>
+    <input id="location_autocomplete" placeholder="Enter your address" name="address"
+        onFocus="geoLocate()" type="text"></input>
+
+    <h2>Enter your maximum drive time</h2>
+    <input name="drive_time"
+        placeholder="Enter your maximum drive time (hours)" type="text"></input>
+
+    <button type="submit">Find me snow</button>
+</form>
+{% endblock content %}

@@ -1,0 +1,7 @@
+{
+"version": 3,
+"mappings": "AAAA,QAAS;EACL,UAAU,EAAC,MAAM;EAEjB,cAAM;IACF,KAAK,EAAC,GAAG;;AAIjB,cAAe;EACX,SAAS,EAAC,IAAI",
+"sources": ["../../sass/mountains/user_location.scss"],
+"names": [],
+"file": "user_location.css"
+}

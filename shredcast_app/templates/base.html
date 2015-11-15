@@ -1,0 +1,19 @@
+{% load staticfiles %}
+<html>
+<head>
+    <title>{% block title %}Shredcast{% endblock title %}</title>
+    {% block stylesheets %}
+        <link rel="stylesheet" type="text/css" href="{% static "css/base.css" %}">
+    {% endblock stylesheets %}
+    {% block javascript %}
+        <script src="{% static "js/onload.js" %}"></script>
+    {% endblock javascript %}
+</head>
+<body>
+    <div class="content">
+    {% block content %}
+        <h1>Shredcast</h1>
+    {% endblock content %}
+    </div>
+</body>
+</html>

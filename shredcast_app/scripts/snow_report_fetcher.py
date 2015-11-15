@@ -18,3 +18,6 @@ except ImportError: # not running in Django, gotta whip up a nice sys.path
     from mountains.models import Mountain
 
 
+mountains = Mountain.objects.all()
+for mountain in mountains:
+    mountain.get_latest_snow_report()

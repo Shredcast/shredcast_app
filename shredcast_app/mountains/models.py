@@ -39,15 +39,38 @@ class Mountain(models.Model):
         minutes_drive = (miles_apart / 80) * 60
         return minutes_drive
 
+    def get_actual_minutes_from_point(self, latitude, longitude):
+        """Return the exact drive time from this mountain to the given point.
+
+        Using Google Maps API, calculate the driving distance between this
+        mountain and the given latitude and longitude.
+        """
+        api_args = {
+            'key' : settings.GOOGLE_PLACES_API_KEY,
+            'start' : str(self.latitude) + ',' + str(self.longitude),
+            'end' : str(latitude) + ',' + str(longitude),
+        }
+        api_url = ('https://maps.googleapis.com/maps/api/distancematrix/json?'
+            'origins=%(start)s&destinations=%(end)s&key=%(key)s') % api_args
+        response = urlopen(api_url)
+        str_response = response.readall().decode('utf-8')
+        data = json.loads(str_response)
+        seconds_drive = data['rows'][0]['elements'][0]['duration']['value']
+        minutes_drive = int(seconds_drive) / 60
+        return minutes_drive
+
     def get_latest_snow_report(self):
         """Update the latest snow report for this mountain.
 
         User the SnoCountry API to retrieve the most updated snow report
         for this mountain, and store it in a SnowReport model.
         """
+        api_args = {
+            'key' : settings.SNOCOUNTRY_API_KEY,
+            'mtn_id' : self.snocountry_id,
+        }
         api_url = ('http://feeds.snocountry.net/conditions.php?apiKey=%(key)s&'
-            'ids=%(mtn_id)s') % {'key' : settings.SNOCOUNTRY_API_KEY, 
-                                 'mtn_id' : self.snocountry_id}
+            'ids=%(mtn_id)s') % api_args
         response = urlopen(api_url)
         str_response = response.readall().decode('utf-8')
         data = json.loads(str_response)
