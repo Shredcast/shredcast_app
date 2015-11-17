@@ -3,10 +3,9 @@ from urllib.request import urlopen
 from datetime import datetime
 
 from django.db import models
+from django.conf import settings
 
 from geopy.distance import vincenty
-
-from django.conf import settings
 
 
 class Mountain(models.Model):
@@ -23,10 +22,10 @@ class Mountain(models.Model):
     google_place_id = models.CharField(max_length=255, default='')
     snocountry_id = models.CharField(max_length=255, default='')
 
-    def estimate_minutes_from_point(self, latitude, longitude):
-        """Return the drive time from this mountain to the given point.
+    def estimated_minutes_from_point(self, latitude, longitude):
+        """Return the drive time from this Mountain to the given point.
 
-        Underestimate the drive time from this mountain's latitude and
+        Underestimate the drive time from this resort's latitude and
         longitude to the given latitude and longitude. The driver is
         assumed to maintain a constant speed of 80 miles per hour and to
         be driving in a straight line. 
@@ -39,11 +38,11 @@ class Mountain(models.Model):
         minutes_drive = (miles_apart / 80) * 60
         return minutes_drive
 
-    def get_actual_minutes_from_point(self, latitude, longitude):
-        """Return the exact drive time from this mountain to the given point.
+    def exact_minutes_from_point(self, latitude, longitude):
+        """Return the exact drive time from this Mountain to the given point.
 
-        Using Google Maps API, calculate the driving distance between this
-        mountain and the given latitude and longitude.
+        Use the Google Maps API to calculate the driving distance between this
+        Mountain and the given latitude and longitude. Time is in minutes.
         """
         api_args = {
             'key' : settings.GOOGLE_PLACES_API_KEY,
@@ -60,10 +59,10 @@ class Mountain(models.Model):
         return minutes_drive
 
     def get_latest_snow_report(self):
-        """Update the latest snow report for this mountain.
+        """Update the latest snow report for this Mountain.
 
-        User the SnoCountry API to retrieve the most updated snow report
-        for this mountain, and store it in a SnowReport model.
+        Use the SnoCountry API to retrieve the most updated snow report
+        for this Mountain, and store it in a SnowReport model.
         """
         api_args = {
             'key' : settings.SNOCOUNTRY_API_KEY,
@@ -86,6 +85,7 @@ class Mountain(models.Model):
             'snow_next_24' : data['predictedSnowFall_24Hours'],
             'snow_next_48' : data['predictedSnowFall_48Hours'],
             'snow_next_72' : data['predictedSnowFall_72Hours'],
+            'snow_next_week' : data['predictedSnowFall_7days']
         }
 
         # SnoCountry API returns snow measurements as strings, and we want to
@@ -101,6 +101,16 @@ class Mountain(models.Model):
         SnowReport.objects.filter(mountain=self).delete()
         SnowReport.objects.create(**snow_report_dict)
 
+    def calculate_shred_score(self):
+        """Estimate desirability of snow on self.
+
+        Using the latest SnowReport for self, calculate how good the snow
+        currently is for the resort represented by self.
+        """
+        latest_report = SnowReport.objects.get(mountain=self)
+        new_snow = latest_report.snow_last_48 + latest_report.snow_next_24
+        return new_snow
+
 
 class SnowReport(models.Model):
     """Represents a snow report for a particular mountain.
@@ -115,3 +125,5 @@ class SnowReport(models.Model):
     snow_next_24 = models.PositiveIntegerField()
     snow_next_48 = models.PositiveIntegerField()
     snow_next_72 = models.PositiveIntegerField()
+    snow_next_week = models.PositiveIntegerField()
+

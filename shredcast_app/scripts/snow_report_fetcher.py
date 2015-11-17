@@ -10,6 +10,8 @@ Serves two purposes.
 import json
 from urllib.request import urlopen
 
+import django
+
 try:
     from mountains.models import Mountain
 except ImportError: # not running in Django, gotta whip up a nice sys.path
@@ -17,6 +19,7 @@ except ImportError: # not running in Django, gotta whip up a nice sys.path
     sys.path.append("/Users/maxwellskala/projects/shredcast/shredcast_app")
     from mountains.models import Mountain
 
+django.setup()
 
 mountains = Mountain.objects.all()
 for mountain in mountains:
