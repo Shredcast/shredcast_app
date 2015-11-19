@@ -5,15 +5,15 @@
     <br>
     {% for dict in mountains %}
     <div>
-        <h2 style="font-size:2em;">{{ dict.name }}</h2>
-        <h3 style="font-size:1.25em;">{{ dict.address }}</h3>
+        <h2 style="font-size:2em;">{{ dict.snow_report.name }}</h2>
+        <h3 style="font-size:1.25em;">{{ dict.snow_report.address }}</h3>
         <ul>
-            <li>Average base depth (maximum): {{ dict.avg_base_depth }} inches</li>
-            <li>Snow in the last 48 hours: {{ dict.snow_last_48 }} inches</li>
-            <li>Snow in the next 24 hours: {{ dict.snow_next_24 }} inches</li>
-            <li>Snow in the next 48 hours: {{ dict.snow_next_48 }} inches</li>
-            <li>Snow in the next 72 hours: {{ dict.snow_next_72 }} inches</li>
-            <li>Snow in the next week: {{ dict.snow_next_week }} inches</li>
+            <li>Average base depth (maximum): {{ dict.snow_report.avg_base_depth }} inches</li>
+            <li>Snow in the last 48 hours: {{ dict.snow_report.snow_last_48 }} inches</li>
+            <li>Snow in the next 24 hours: {{ dict.snow_report.now_next_24 }} inches</li>
+            <li>Snow in the next 48 hours: {{ dict.snow_report.snow_next_48 }} inches</li>
+            <li>Snow in the next 72 hours: {{ dict.snow_report.snow_next_72 }} inches</li>
+            <li>Snow in the next week: {{ dict.snow_report.snow_next_week }} inches</li>
         </ul>
     </div>
     <br>

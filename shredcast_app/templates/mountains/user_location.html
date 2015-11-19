@@ -2,6 +2,7 @@
 {% load staticfiles %}
 
 {% block javascript %}
+{{ block.super }}
 <script src="{% static "js/mountains/user_location.js" %}"></script>
 <script src="https://maps.googleapis.com/maps/api/js?key={{ api_key }}
     &signed_in=true&libraries=places&callback=initAutocomplete" async defer>
@@ -14,7 +15,7 @@
 {% endblock stylesheets %}
 
 {% block content %}
-<form action="{% url "mountain_results" %}" method="GET">
+<form id="location_form" action="{% url "mountain_results" %}" method="GET">
     <h2>Enter your location</h2>
     <input id="location_autocomplete" placeholder="Enter your address" name="address"
         onFocus="geoLocate()" type="text"></input>
@@ -23,6 +24,12 @@
     <input name="drive_time"
         placeholder="Enter your maximum drive time (hours)" type="text"></input>
 
+    <h2>Are you shredding today or tomorrow?</h2>
+    <select name="shred_day">
+        <option value="today">Today</option>
+        <option value="tomorrow">Tomorrow</option>
+    </select>
+    <br>
     <button type="submit">Find me snow</button>
 </form>
 {% endblock content %}

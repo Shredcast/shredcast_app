@@ -3,7 +3,7 @@ from django.views.generic import View
 
 from django.conf import settings
 
-from mountains.models import Mountain, SnowReport
+from mountains.models import Mountain, SnowReport, WeatherReport
 from users.models import UserLocation
 
 
@@ -20,12 +20,12 @@ class UserLocationView(View):
 class MountainResultsView(View):
     """Return best mountains for the user based on location and drive time."""
 
-    def sort_mountains(self, mountain_list):
+    def sort_mountains(self, mountain_list, day):
         """Return given mountain list, sorted by snowfall."""
         mountain_score_tuples = []
         for mountain in mountain_list:
             mountain_score_tuples.append(
-                (mountain, mountain.calculate_shred_score()))
+                (mountain, mountain.calculate_shred_score(day)))
 
         sorted_mountain_tuples = sorted(
             mountain_score_tuples,
@@ -50,53 +50,30 @@ class MountainResultsView(View):
         return best_snow_in_range
 
     def get_mountain_reports(self, mountain_list):
-        """Return a list of dicts containing mountain snow reports.
-
-        For each mountain in list, create a dict like so:
-        dict(
-            name: string,
-            address: string,
-            avg_base_depth: int,
-            snow_last_48: int,
-            snow_next_24: int,
-            snow_next_48: int,
-            snow_next_72: int,
-            snow_next_week: int, )
-
-        @TODO: make this a method of SnowReport (basically a serialized function),
-               clean up this docstring a bit
-        """
+        """Return a list containing serialized mountain snow reports."""
         reports_list = []
         for mountain in mountain_list:
             snow_report = SnowReport.objects.get(mountain=mountain)
-            report_dict = dict(
-                name=mountain.name,
-                address=mountain.address,
-                avg_base_depth=snow_report.avg_base_depth_max,
-                snow_last_48=snow_report.snow_last_48,
-                snow_next_24=snow_report.snow_next_24,
-                snow_next_48=snow_report.snow_next_48,
-                snow_next_72=snow_report.snow_next_72,
-                snow_next_week=snow_report.snow_next_week, )
-            reports_list.append(report_dict)
+            weather_report = WeatherReport.objects.get(mountain=mountain)
+            reports_list.append(dict(
+                snow_report=snow_report.serialized(),
+                weather_report=weather_report.serialized(), ))
 
         return reports_list
 
     def get(self, request, *args, **kwargs):
         address = request.GET.get('address')
         drive_time = request.GET.get('drive_time')
+        shred_day = request.GET.get('shred_day')
 
         user_location = UserLocation.objects.create(address, drive_time)
         mountains_in_radius = user_location.get_mountains_in_radius()
-        sorted_mountain_tuples = self.sort_mountains(mountains_in_radius)
+        sorted_mountain_tuples = self.sort_mountains(mountains_in_radius, shred_day)
         best_snow_in_range = self.filter_mountains(
             sorted_mountain_tuples, user_location)
         mountain_reports = self.get_mountain_reports(best_snow_in_range)
 
-        context = dict(mountains=mountain_reports)
-
-        # create some kind of UserResult model to record what we send back to the user
-        # (it should foreign key to the UserLocation model so we know what the user asked for)
+        context = dict(mountains=mountain_reports) # need to tell view which day the shred is happening
 
         return render(request,
                       'mountains/mountain_results.html',

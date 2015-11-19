@@ -23,4 +23,4 @@ django.setup()
 
 mountains = Mountain.objects.all()
 for mountain in mountains:
-    mountain.get_latest_snow_report()
+    mountain.get_latest_report()
