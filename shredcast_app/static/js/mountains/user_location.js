@@ -1,9 +1,3 @@
-$('#location_form').on('submit', function(event) {
-    alert('dude you totally clicked');
-    event.preventDefault();
-    return false;
-});
-
 /* Start copy/pasted code from Google for autocomplete */
 var placeSearch, autocomplete;
 
@@ -19,17 +13,17 @@ function initAutocomplete() {
 // as supplied by the browser's 'navigator.geolocation' object.
 function geolocate() {
     if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(function(position) {
-        var geolocation = {
-          lat: position.coords.latitude,
-          lng: position.coords.longitude
-        };
-        var circle = new google.maps.Circle({
-          center: geolocation,
-          radius: position.coords.accuracy
+        navigator.geolocation.getCurrentPosition(function(position) {
+            var geolocation = {
+                lat: position.coords.latitude,
+                lng: position.coords.longitude
+            };
+            var circle = new google.maps.Circle({
+                center: geolocation,
+                radius: position.coords.accuracy
+            });
+            autocomplete.setBounds(circle.getBounds());
         });
-        autocomplete.setBounds(circle.getBounds());
-      });
     }
 }
 /* End Google code */
