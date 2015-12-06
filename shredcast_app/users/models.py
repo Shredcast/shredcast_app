@@ -15,7 +15,7 @@ class UserLocationManager(models.Manager):
     creation.
     """
 
-    def create(self, address, drive_time):
+    def create(self, address, drive_time, going_today):
         """Log a new UserLocation.
 
         Create a new UserLocation model and save it to the database.
@@ -38,6 +38,7 @@ class UserLocationManager(models.Manager):
             latitude=latitude,
             longitude=longitude,
             inserted=inserted,
+            going_today=going_today,
         )
         user_location.save()
         return user_location
@@ -54,6 +55,7 @@ class UserLocation(models.Model):
     latitude = models.FloatField(blank=True, null=True)
     longitude = models.FloatField(blank=True, null=True)
     inserted = models.DateTimeField()
+    going_today = models.BooleanField() # false = going tomorrow
 
     objects = UserLocationManager()
 

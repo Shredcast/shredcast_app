@@ -16,18 +16,21 @@
 
 {% block content %}
 <form id="location_form" name="location-form" action="{% url "mountain_results" %}" method="GET" onsubmit="validateLocation()">
-    <h2>Enter your location</h2>
+    {% if errors.no_results %}
+    <div> No mountains found for your location and drive time. Please change location or increase drive time.</div>
+    {% endif %}
+    <h2 {% if errors.address %} style="color:red;" {% endif %}>Enter your location</h2>
     <input id="location_autocomplete" placeholder="Enter your address" name="address"
         onFocus="geoLocate()" type="text"></input>
 
-    <h2>Enter your maximum drive time</h2>
+    <h2 {% if errors.drive_time %} style="color:red;" {% endif %}>Enter your maximum drive time</h2>
     <input name="drive_time"
         placeholder="Enter your maximum drive time (hours)" type="text"></input>
 
     <h2>Are you shredding today or tomorrow?</h2>
-    <select name="shred_day">
-        <option value="today">Today</option>
-        <option value="tomorrow">Tomorrow</option>
+    <select name="going_today">
+        <option value="True">Today</option>
+        <option value="False">Tomorrow</option>
     </select>
     <br>
     <button type="submit">Find me snow</button>

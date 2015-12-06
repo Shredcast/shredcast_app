@@ -44,7 +44,8 @@ class Mountain(models.Model):
         """Return the exact drive time from this Mountain to the given point.
 
         Use the Google Maps API to calculate the driving distance between this
-        Mountain and the given latitude and longitude. Time is in minutes.
+        Mountain and the given latitude and longitude. Time is a float in 
+        minutes.
         """
         api_args = {
             'key' : settings.GOOGLE_PLACES_API_KEY,
@@ -54,12 +55,16 @@ class Mountain(models.Model):
         api_url = ('https://maps.googleapis.com/maps/api/distancematrix/json?'
             'origins=%(start)s&destinations=%(end)s&key=%(key)s') % api_args
         data = api_utils.decode_http_response(api_url)
-        seconds_drive = data['rows'][0]['elements'][0]['duration']['value']
+        try:
+            seconds_drive = data['rows'][0]['elements'][0]['duration']['value']
+        except KeyError:
+            raise api_utils.APIError('google_places', api_url, data)
+
         minutes_drive = int(seconds_drive) / 60
         return minutes_drive
 
     def get_latest_report(self):
-        """Update the latest snow/weather reports for this Mountain.
+        """Update the latest snow/weather/trail reports for this Mountain.
 
         Use the SnoCountry API to retrieve the most updated snow report
         for this Mountain, and store it in a SnowReport model, as well
@@ -82,6 +87,7 @@ class Mountain(models.Model):
             'date_time' : report_datetime,
             'snow_last_48' : data['snowLast48Hours'],
             'avg_base_depth_max' : data['avgBaseDepthMax'],
+            'primary_condition': data['primarySurfaceCondition'],
             'snow_next_24' : data['predictedSnowFall_24Hours'],
             'snow_next_48' : data['predictedSnowFall_48Hours'],
             'snow_next_72' : data['predictedSnowFall_72Hours'],
@@ -93,9 +99,13 @@ class Mountain(models.Model):
         # all strings to ints. If the API returned an empty string (''), we
         # assume that measurement was 0.
         for key, value in snow_report_dict.items():
-            if key in ['date_time', 'mountain']:
+            if key in ['date_time', 'mountain', 'primary_condition']:
                 continue # Ignore non snow measurements
-            snow_report_dict[key] = int(value) if value else 0
+            try:
+                snow_report_dict[key] = int(float(value)) if value else 0
+            except ValueError: # probably got something like '1 - 2' for snow
+                new_value = value.split()[0]
+                snow_report_dict[key] = int(float(new_value)) if new_value else 0 
 
         # Delete outdated reports and create the new one
         SnowReport.objects.filter(mountain=self).delete()
@@ -104,6 +114,8 @@ class Mountain(models.Model):
         weather_report_dict = {
             'mountain': self,
             'date_time': report_datetime,
+            'today_base_temp': data['forecastBaseTemp'],
+            'today_summit_temp': data['forecastTopTemp'],
             'today_temp_low': data['weatherToday_Temperature_Low'],
             'today_temp_high': data['weatherToday_Temperature_High'],
             'today_weather': data['weatherToday_Condition'],
@@ -118,19 +130,45 @@ class Mountain(models.Model):
             if key in ['mountain', 'date_time', 
                        'today_weather', 'tomorrow_weather']:
                 continue
-            weather_report_dict[key] = int(value) if value else 0
+            weather_report_dict[key] = int(float(value)) if value else 0
 
         WeatherReport.objects.filter(mountain=self).delete()
         WeatherReport.objects.create(**weather_report_dict)
 
-    def calculate_shred_score(self, day):
+        trail_report_dict = {
+            'mountain': self,
+            'date_time': report_datetime,
+            'max_trails': data['maxOpenDownHillTrails'],
+            'max_miles': data['maxOpenDownHillMiles'],
+            'max_acres': data['maxOpenDownHillAcres'],
+            'max_lifts': data['maxOpenDownHillLifts'],
+            'open_trails': data['openDownHillTrails'],
+            'open_miles': data['openDownHillMiles'],
+            'open_acres': data['openDownHillAcres'],
+            'open_lifts': data['openDownHillLifts'],
+            'parks_open': data['numberTerrainParksOpen'],
+            'park_features': data['numberTerrainParkFeatures'],
+            'trail_map_small': data['tnTrailMapURL'],
+            'trail_map_large': data['lgTrailMapURL'],
+        }
+        # casting again
+        for key, value in trail_report_dict.items():
+            if key in ['mountain', 'date_time', 'trail_map_small', 
+                       'trail_map_large']:
+                continue
+            trail_report_dict[key] = int(float(value)) if value else 0
+
+        TrailReport.objects.filter(mountain=self).delete()
+        TrailReport.objects.create(**trail_report_dict)
+
+    def calculate_shred_score(self, today):
         """Estimate desirability of snow on self.
 
         Using the latest SnowReport for self, calculate how good the snow
         currently is for the resort represented by self.
         """
         latest_report = SnowReport.objects.get(mountain=self)
-        if day == 'today':
+        if today:
             new_snow = latest_report.snow_last_48 + latest_report.avg_base_depth_max
         else:
             new_snow = latest_report.snow_last_48 + latest_report.snow_next_24
@@ -143,9 +181,10 @@ class SnowReport(models.Model):
     All snow measurements are recorded in inches.
     """
 
-    mountain = models.ForeignKey('Mountain')
+    mountain = models.ForeignKey(Mountain)
     date_time = models.DateTimeField()
     avg_base_depth_max = models.PositiveIntegerField()
+    primary_condition = models.CharField(max_length=100, blank=True, null=True)
     snow_last_48 = models.PositiveIntegerField()
     snow_next_24 = models.PositiveIntegerField()
     snow_next_48 = models.PositiveIntegerField()
@@ -173,8 +212,10 @@ class WeatherReport(models.Model):
     Temperatures are in Fahrenheit and wind speeds in miles per hour.
     """
 
-    mountain = models.ForeignKey('Mountain')
+    mountain = models.ForeignKey(Mountain)
     date_time = models.DateTimeField()
+    today_base_temp = models.IntegerField()
+    today_summit_temp = models.IntegerField()
     today_temp_low = models.IntegerField()
     today_temp_high = models.IntegerField()
     today_weather = models.CharField(max_length=100) # e.g. 'Partly Cloudy'
@@ -200,3 +241,39 @@ class WeatherReport(models.Model):
             tomorrow_wind=self.tomorrow_wind, )
         return result
 
+
+class TrailReport(models.Model):
+    """Represents a trail report for a particular mountain."""
+
+    mountain = models.ForeignKey(Mountain)
+    date_time = models.DateTimeField()
+    max_trails = models.PositiveIntegerField()
+    max_miles = models.PositiveIntegerField()
+    max_acres = models.PositiveIntegerField()
+    max_lifts = models.PositiveIntegerField()
+    open_trails = models.PositiveIntegerField()
+    open_miles = models.PositiveIntegerField()
+    open_acres = models.PositiveIntegerField()
+    open_lifts = models.PositiveIntegerField()
+    parks_open = models.PositiveIntegerField()
+    park_features = models.PositiveIntegerField()
+    trail_map_small = models.CharField(max_length=256) # URL
+    trail_map_large = models.CharField(max_length=256) # URL
+
+    def serialized(self):
+        """Return a dict of self and the name and address of self.mountain."""
+        result = dict(
+            name=self.mountain.name,
+            address=self.mountain.address,
+            date_time=self.date_time,
+            max_trails=self.max_trails,
+            max_miles=self.max_miles,
+            max_acres=self.max_acres,
+            max_lifts=self.max_lifts,
+            open_trails=self.open_trails,
+            open_miles=self.open_miles,
+            open_acres=self.open_acres,
+            open_lifts=self.open_lifts,
+            parks_open=self.parks_open,
+            park_featuers=self.park_features, )
+        return result
