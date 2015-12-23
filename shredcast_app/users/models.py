@@ -23,11 +23,11 @@ class UserLocationManager(models.Manager):
         timestamp. Then save.
         """
         inserted = datetime.now()
-        address = address.replace(' ', '+')
+        api_address = address.replace(' ', '+')
 
         api_url = ('https://maps.googleapis.com/maps/api/geocode/json?'
             'address=%(address)s&key=%(key)s') % \
-            {'address': address, 'key': settings.GOOGLE_PLACES_API_KEY}
+            {'address': api_address, 'key': settings.GOOGLE_PLACES_API_KEY}
         response = api_utils.decode_http_response(api_url)
         data = response['results'][0]['geometry']['location']
         latitude = data['lat']
@@ -79,8 +79,12 @@ class UserLocation(models.Model):
 
     def is_mountain_in_range(self, mountain):
         """Return True if actual drive time to mountain < drive_time."""
-        actual_drive = mountain.exact_minutes_from_point(
-            self.latitude, self.longitude) # minutes
-        actual_drive = actual_drive / 60 # hours, duh
-        return actual_drive <= self.drive_time
+        try:
+            actual_drive = mountain.exact_minutes_from_point(
+                self.latitude, self.longitude) # minutes
+            actual_drive = actual_drive / 60 # hours, duh
+            return actual_drive <= self.drive_time
+        except api_utils.APIError:
+            # Almost certainly out of range if Google couldn't calculate distance
+            return False
 

@@ -39,6 +39,7 @@ DJANGO_APPS = (
 )
 
 THIRD_PARTY_APPS = (
+    'gunicorn',
 )
 
 LOCAL_APPS = (
@@ -128,4 +129,3 @@ SNOCOUNTRY_API_KEY = 'SnoCountry.example'
 # has semi-strict limits we will inevitably hit eventually
 GOOGLE_PLACES_API_KEY = 'AIzaSyDZai-ebT6Kq1_RoDU7bdoshKdQe63RR4w'
 GOOGLE_MAPS_API_KEY = 'AIzaSyBWM6TzGzcHvhrmBI8y-2rlR_Ek9QTmKvY'
-

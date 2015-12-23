@@ -1,0 +1,1 @@
+web: gunicorn shredcast_app.config.wsgi --log-file -
