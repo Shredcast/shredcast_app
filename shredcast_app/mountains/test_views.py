@@ -62,6 +62,20 @@ class TestMountainResultsView(TestCase):
         templates_used = [template.name for template in response.templates]
         self.assertIn('users/user_location.html', templates_used)
 
+    def test_mountain_results_view_handles_no_results(self):
+        """The UserLocationView should redirect to itself if no mountains are found."""
+        request_data = dict(
+            address='5421 Ora Street, San Jose, CA 95129',
+            drive_time='1',
+            going_today='False', )
+
+        response = self.client.get('/results/', request_data)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('no_results', response.context['errors'])
+        templates_used = [template.name for template in response.templates]
+        self.assertIn('users/user_location.html', templates_used)
+
     def test_mountain_results_view_creates_user_location(self):
         """Upon hitting the UserLocationView, a UserLocation model is created.
         """
@@ -78,3 +92,15 @@ class TestMountainResultsView(TestCase):
         self.assertEqual(response.status_code, 200)
         user_locations = UserLocation.objects.all()
         self.assertEqual(user_locations.count(), 1)
+
+    def test_mountain_results_view_returns_mountains_properly(self):
+        """Docstring here. Make sure mountains are returned as the template expects them."""
+        pass
+
+    def test_mountain_results_view_returns_at_most_10_mountains(self):
+        """Docstring here."""
+        pass
+
+    def test_mountain_results_view_returns_10_best_mountains(self):
+        """Docstring here. Basically, test that 10 mountains returned have best shred scores."""
+        pass
