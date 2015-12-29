@@ -122,11 +122,6 @@ USE_L10N = True
 USE_TZ = False #@TODO look into what this actually does on prod
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/1.8/howto/static-files/
-
-STATIC_URL = '/static/'
-
 # API keys
 
 # to be replaced with a paid API key when live
