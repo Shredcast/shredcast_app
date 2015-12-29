@@ -102,6 +102,12 @@ DATABASES = {
     }
 }
 
+import dj_database_url
+DATABASES['default'] =  dj_database_url.config()
+
+# Enable Persistent Connections
+DATABASES['default']['CONN_MAX_AGE'] = 500
+
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
 
