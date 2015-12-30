@@ -24,7 +24,11 @@ SECRET_KEY = '#c)3un#^q1z4-^n52hc3&&=m6r&#uitv02tmhh@p2z=@l_6$m^'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+# Honor the 'X-Forwarded-Proto' header for request.is_secure()
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# Allow all host headers
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -78,10 +82,15 @@ TEMPLATES = [
     },
 ]
 
-STATIC_PATH = os.path.join(BASE_DIR, 'static')
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/1.7/howto/static-files/
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+STATIC_ROOT = 'staticfiles'
 STATIC_URL = '/static/'
+
 STATICFILES_DIRS = (
-    STATIC_PATH,
+    os.path.join(BASE_DIR, 'static'),
 )
 
 WSGI_APPLICATION = 'shredcast_app.config.wsgi.application'
@@ -101,8 +110,16 @@ DATABASES = {
     }
 }
 
+import dj_database_url
+DATABASES['default'] =  dj_database_url.config()
+
 # Enable Persistent Connections
 DATABASES['default']['CONN_MAX_AGE'] = 500
+
+# Simplified static file serving.
+# https://warehouse.python.org/project/whitenoise/
+
+STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
