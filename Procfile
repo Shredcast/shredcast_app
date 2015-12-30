@@ -1,1 +1,1 @@
-web: gunicorn shredcast_app.config.wsgi --log-file -
+web: sh -c 'cd ./shredcast_app/ && exec gunicorn config.wsgi --log-file -'

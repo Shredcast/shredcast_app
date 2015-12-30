@@ -45,9 +45,7 @@ def get_resort_location(resort_name):
     return results
 
 
-for i in range(0, 1000000):
-    if i > 10000:
-        break
+for i in range(31770, 1000000):
     i = str(i).zfill(6)
     print(i)
     api_url = ('http://feeds.snocountry.net/conditions.php?'
@@ -68,5 +66,6 @@ for i in range(0, 1000000):
                 google_place_id=mountain_details['google_id'],
                 snocountry_id=resort_snocountry_id, )
             print(resort_name)
-        except: # catch anything!
+        except Exception as e: # catch anything!
+            print(e)
             print(data) # let's see what got fucked up

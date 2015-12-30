@@ -39,7 +39,6 @@ DJANGO_APPS = (
 )
 
 THIRD_PARTY_APPS = (
-    'gunicorn',
 )
 
 LOCAL_APPS = (
@@ -85,7 +84,7 @@ STATICFILES_DIRS = (
     STATIC_PATH,
 )
 
-WSGI_APPLICATION = 'config.wsgi.application'
+WSGI_APPLICATION = 'shredcast_app.config.wsgi.application'
 
 
 # Database
@@ -101,9 +100,6 @@ DATABASES = {
         'PORT': '5432',
     }
 }
-
-import dj_database_url
-DATABASES['default'] =  dj_database_url.config()
 
 # Enable Persistent Connections
 DATABASES['default']['CONN_MAX_AGE'] = 500
