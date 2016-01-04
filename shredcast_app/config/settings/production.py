@@ -1,3 +1,5 @@
+import sys
+
 from .base import *
 
 import dj_database_url
@@ -11,3 +13,14 @@ DATABASES['default']['CONN_MAX_AGE'] = 500
 # https://warehouse.python.org/project/whitenoise/
 
 STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
+
+# Error logging
+LOGGING = {
+    'handlers': {
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'stream': sys.stdout
+        },
+    }
+}
