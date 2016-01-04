@@ -11,7 +11,7 @@ import os
 from django.core.wsgi import get_wsgi_application
 from whitenoise.django import DjangoWhiteNoise
 
-os.environ['DJANGO_SETTINGS_MOUDLE'] = 'config.settings.production'
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", 'shredcast_app.config.settings.production')
 
 application = get_wsgi_application()
 application = DjangoWhiteNoise(application)
