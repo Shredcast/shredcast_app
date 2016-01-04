@@ -16,6 +16,7 @@ STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
 
 # Error logging
 LOGGING = {
+    'version': 1,
     'handlers': {
         'console': {
             'level': 'INFO',
