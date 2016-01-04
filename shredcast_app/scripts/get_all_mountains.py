@@ -45,7 +45,7 @@ def get_resort_location(resort_name):
     return results
 
 
-for i in range(31770, 1000000):
+for i in range(62188, 1000000):
     i = str(i).zfill(6)
     print(i)
     api_url = ('http://feeds.snocountry.net/conditions.php?'
